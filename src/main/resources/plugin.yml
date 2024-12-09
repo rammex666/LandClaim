@@ -1,0 +1,12 @@
+name: LandClaim
+version: '1.0'
+main: fr.rammex.landClaim.LandClaim
+api-version: '1.21'
+commands:
+  land:
+    description: Commande principale du plugin LandClaim
+    aliases: [lc]
+    subcommands:
+      claim:
+        description: Permet de créer un land
+        usage: /land create <nom>
