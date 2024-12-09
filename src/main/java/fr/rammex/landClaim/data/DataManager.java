@@ -51,6 +51,7 @@ public class DataManager {
             String landTable = "CREATE TABLE IF NOT EXISTS lands_loc (" +
                     "`id` INTEGER PRIMARY KEY AUTOINCREMENT," +
                     "`loc` TEXT," +
+                    "`name` TEXT," +
                     "`owner_uuid` VARCHAR(36) NOT NULL" +
                     ");";
             s.executeUpdate(landTable);
@@ -70,9 +71,9 @@ public class DataManager {
         }
     }
 
-    public void addLand(String loc, String owner_uuid) {
+    public void addLand(String loc, String owner_uuid, String name) {
         try (Connection connection = getSQLConnection()) {
-            PreparedStatement ps = connection.prepareStatement("INSERT INTO lands_loc (loc, owner_uuid) VALUES (?, ?)");
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO lands_loc (loc, name ,owner_uuid) VALUES (?, ?, ?)");
             ps.setString(1, loc);
             ps.setString(2, owner_uuid);
             ps.executeUpdate();

@@ -21,9 +21,13 @@ public class LandCommand implements CommandExecutor {
         } else {
             switch (args[0]) {
                 case "create":
+                    if (args.length != 2) {
+                        sender.sendMessage("Usage: /land create <name>");
+                        return false;
+                    }
                     String loc = player.getLocation().getChunk().toString();
                     if (!LandClaim.instance.getDatabase("lands").isChunkClaimed(loc)) {
-                        LandClaim.instance.getDatabase("lands").addLand(loc, player.getUniqueId().toString());
+                        LandClaim.instance.getDatabase("lands").addLand(loc, args[1],player.getUniqueId().toString());
                         player.sendMessage("Land claimed");
                     } else {
                         player.sendMessage("Land already claimed");
