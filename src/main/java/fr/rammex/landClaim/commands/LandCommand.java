@@ -22,31 +22,31 @@ public class LandCommand implements CommandExecutor {
             switch (args[0]) {
                 case "create":
                     if (args.length != 2) {
-                        sender.sendMessage("Usage: /land create <name>");
+                        sender.sendMessage(LandClaim.instance.getMessage("usage.land.create"));
                         return false;
                     }
                     if(!LandClaim.instance.getDatabase("lands").isNameUsed(args[1]) && !LandClaim.instance.getDatabase("lands").asLand(player.getUniqueId().toString())) {
                         LandClaim.instance.getDatabase("lands").createLand(player.getUniqueId().toString(), args[1]);
                         LandClaim.instance.getDatabase("lands").addPlayer(player.getUniqueId().toString(), args[1], "owner");
-                        sender.sendMessage("Land created");
+                        sender.sendMessage(LandClaim.instance.getMessage("land.created"));
                     } else {
-                        sender.sendMessage("Land name already used");
+                        sender.sendMessage(LandClaim.instance.getMessage("land.create.error.name_already_exists"));
                     }
                     break;
                 case "delete":
                     if (args.length != 2) {
-                        sender.sendMessage("Usage: /land delete <name>");
+                        sender.sendMessage(LandClaim.instance.getMessage("usage.land.delete"));
                         return false;
                     }
                     if(LandClaim.instance.getDatabase("lands").isNameUsed(args[1]) && LandClaim.instance.getDatabase("lands").isOwner(player.getUniqueId().toString(), args[1])) {
                         LandClaim.instance.getDatabase("lands").deleteLand(player.getUniqueId().toString(), args[1]);
-                        sender.sendMessage("Land deleted");
+                        sender.sendMessage(LandClaim.instance.getMessage("land.delete.succes"));
                     } else {
-                        sender.sendMessage("Land not found or you are not the owner");
+                        sender.sendMessage(LandClaim.instance.getMessage("land.delete.error.not_owner"));
                     }
                     break;
                 default:
-                    sender.sendMessage("Unknown command");
+                    sender.sendMessage(LandClaim.instance.getMessage("usage.error.command_not_found"));
                     break;
             }
         }
