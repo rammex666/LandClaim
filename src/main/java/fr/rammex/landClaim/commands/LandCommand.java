@@ -25,12 +25,24 @@ public class LandCommand implements CommandExecutor {
                         sender.sendMessage("Usage: /land create <name>");
                         return false;
                     }
-                    String loc = player.getLocation().getChunk().toString();
-                    if (!LandClaim.instance.getDatabase("lands").isChunkClaimed(loc)) {
-                        LandClaim.instance.getDatabase("lands").addLand(loc, args[1],player.getUniqueId().toString());
-                        player.sendMessage("Land claimed");
+                    if(!LandClaim.instance.getDatabase("lands").isNameUsed(args[1]) && !LandClaim.instance.getDatabase("lands").asLand(player.getUniqueId().toString())) {
+                        LandClaim.instance.getDatabase("lands").createLand(player.getUniqueId().toString(), args[1]);
+                        LandClaim.instance.getDatabase("lands").addPlayer(player.getUniqueId().toString(), args[1], "owner");
+                        sender.sendMessage("Land created");
                     } else {
-                        player.sendMessage("Land already claimed");
+                        sender.sendMessage("Land name already used");
+                    }
+                    break;
+                case "delete":
+                    if (args.length != 2) {
+                        sender.sendMessage("Usage: /land delete <name>");
+                        return false;
+                    }
+                    if(LandClaim.instance.getDatabase("lands").isNameUsed(args[1]) && LandClaim.instance.getDatabase("lands").isOwner(player.getUniqueId().toString(), args[1])) {
+                        LandClaim.instance.getDatabase("lands").deleteLand(player.getUniqueId().toString(), args[1]);
+                        sender.sendMessage("Land deleted");
+                    } else {
+                        sender.sendMessage("Land not found or you are not the owner");
                     }
                     break;
                 default:
