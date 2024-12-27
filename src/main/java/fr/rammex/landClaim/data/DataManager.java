@@ -9,8 +9,8 @@ import java.util.logging.Level;
 
 public class DataManager {
 
-    private final String dbname;
-    private final File dataFolder;
+    private static String dbname ;
+    private static File dataFolder;
 
     public DataManager(String databaseName, File folder) {
         dbname = databaseName;
@@ -27,7 +27,7 @@ public class DataManager {
         }
     }
 
-    public Connection getSQLConnection() {
+    public static Connection getSQLConnection() {
         File folder = new File(dataFolder, dbname + ".db");
         if (!folder.exists()) {
             try {
@@ -119,7 +119,7 @@ public class DataManager {
         initialize();
     }
 
-    public void close(PreparedStatement ps, ResultSet rs) {
+    public static void close(PreparedStatement ps, ResultSet rs) {
         try {
             if (ps != null) ps.close();
             if (rs != null) rs.close();
@@ -128,7 +128,7 @@ public class DataManager {
         }
     }
 
-    public void addLand(String loc, String owner_uuid, String name) {
+    public static void addLand(String loc, String owner_uuid, String name) {
         try (Connection connection = getSQLConnection()) {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO lands_loc (loc, name ,owner_uuid) VALUES (?, ?, ?)");
             ps.setString(1, loc);
@@ -140,7 +140,7 @@ public class DataManager {
         }
     }
 
-    public boolean isChunkClaimed(String loc) {
+    public static boolean isChunkClaimed(String loc) {
         try (Connection connection = getSQLConnection()) {
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM lands_loc WHERE loc = ?");
             ps.setString(1, loc);
@@ -154,7 +154,7 @@ public class DataManager {
         return false;
     }
 
-    public boolean isNameUsed(String name) {
+    public static boolean isNameUsed(String name) {
         try (Connection connection = getSQLConnection()) {
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM lands_data WHERE name = ?");
             ps.setString(1, name);
@@ -168,7 +168,7 @@ public class DataManager {
         return false;
     }
 
-    public void addPlayer(String uuid, String land_name, String land_rank) {
+    public static void addPlayer(String uuid, String land_name, String land_rank) {
         try (Connection connection = getSQLConnection()) {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO players_data (uuid, land_name, land_rank) VALUES (?, ?, ?)");
             ps.setString(1, uuid);
@@ -181,7 +181,7 @@ public class DataManager {
         }
     }
 
-    public void createLand(String owner_uuid, String name) {
+    public static void createLand(String owner_uuid, String name) {
         try (Connection connection = getSQLConnection()) {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO lands_data (owner_uuid, name, member) VALUES (?, ?, ?)");
             ps.setString(1, owner_uuid);
@@ -194,7 +194,7 @@ public class DataManager {
         }
     }
 
-    public boolean asLand(String uuid) {
+    public static boolean asLand(String uuid) {
         try (Connection connection = getSQLConnection()) {
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM players_data WHERE uuid = ?");
             ps.setString(1, uuid);
@@ -208,7 +208,7 @@ public class DataManager {
         return false;
     }
 
-    public void addPermission(String land_id, String status, int permission) {
+    public static void addPermission(String land_id, String status, int permission) {
         try (Connection connection = getSQLConnection()) {
             PreparedStatement ps = connection.prepareStatement("INSERT INTO lands_perm (land_id, status, permission) VALUES (?, ?, ?)");
             ps.setString(1, land_id);
@@ -221,7 +221,7 @@ public class DataManager {
         }
     }
 
-    public boolean playerAsPermission(String uuid, String land_id, int permission) {
+    public static boolean playerAsPermission(String uuid, String land_id, int permission) {
         try (Connection connection = getSQLConnection()) {
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM players_perm WHERE player_uuid = ? AND land_id = ? AND permission = ?");
             ps.setString(1, uuid);
@@ -237,7 +237,7 @@ public class DataManager {
         return false;
     }
 
-    public boolean landPermission(String land_id, int permission) {
+    public static boolean landPermission(String land_id, int permission) {
         try (Connection connection = getSQLConnection()) {
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM lands_perm WHERE land_id = ? AND permission = ?");
             ps.setString(1, land_id);
@@ -252,7 +252,7 @@ public class DataManager {
         return false;
     }
 
-    public boolean isOwner(String uuid, String land_name) {
+    public static boolean isOwner(String uuid, String land_name) {
         try (Connection connection = getSQLConnection()) {
             PreparedStatement ps = connection.prepareStatement("SELECT * FROM lands_data WHERE owner_uuid = ? AND name = ?");
             ps.setString(1, uuid);
@@ -267,7 +267,7 @@ public class DataManager {
         return false;
     }
 
-    public void deleteLand(String owner_uuid, String name) {
+    public static void deleteLand(String owner_uuid, String name) {
         try (Connection connection = getSQLConnection()) {
 
             PreparedStatement ps = connection.prepareStatement("DELETE FROM lands_data WHERE owner_uuid = ? AND name = ?");
@@ -304,6 +304,20 @@ public class DataManager {
         } catch (SQLException ex) {
             LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to delete land", ex);
         }
+    }
+
+    public static String getChunkLandName(String loc) {
+        try (Connection connection = LandClaim.instance.getDatabase("lands").getSQLConnection()) {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM lands_loc WHERE loc = ?");
+            ps.setString(1, loc);
+            ResultSet rs = ps.executeQuery();
+            String result = rs.getString("name");
+            LandClaim.instance.getDatabase("lands").close(ps, rs);
+            return result;
+        } catch (SQLException ex) {
+            LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to get land name", ex);
+        }
+        return null;
     }
 
 }
