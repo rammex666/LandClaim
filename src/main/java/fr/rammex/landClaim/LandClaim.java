@@ -18,19 +18,15 @@ import java.util.Map;
 
 public final class LandClaim extends JavaPlugin {
 
+    @Getter
     public static LandClaim instance;
 
+    @Getter
     private final Map<String, DataManager> databases = new HashMap<>();
 
     @Getter
     private FileConfiguration messagesConf;
     private File file;
-
-    public static LandClaim getInstance() {
-        return instance;
-    }
-
-
 
 
     @Override
@@ -62,10 +58,6 @@ public final class LandClaim extends JavaPlugin {
         DataManager db = new DataManager(databaseName, this.getDataFolder());
         db.load();
         databases.put(databaseName, db);
-    }
-
-    public Map<String, DataManager> getDatabases() {
-        return databases;
     }
 
 
