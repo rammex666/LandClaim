@@ -6,16 +6,17 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 
-public class BlockPlaceListener implements Listener {
+public class InteractBlockListener implements Listener {
+
     static LandClaim plugin = LandClaim.getInstance();
 
     @EventHandler
-    public void onBlockPlace(BlockPlaceEvent event) {
+    public void onInteractBlock(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         String uuid = player.getUniqueId().toString();
-        Location loc = event.getBlock().getLocation();
+        Location loc = player.getLocation();
         String locString = loc.toString();
 
         if(!DataManager.isPlayerInClaim(uuid, loc)) {

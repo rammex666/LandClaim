@@ -2,8 +2,7 @@ package fr.rammex.landClaim;
 
 import fr.rammex.landClaim.commands.LandCommand;
 import fr.rammex.landClaim.data.DataManager;
-import fr.rammex.landClaim.listener.lands.BlockBreakListener;
-import fr.rammex.landClaim.listener.lands.BlockPlaceListener;
+import fr.rammex.landClaim.listener.lands.*;
 import fr.rammex.landClaim.listener.player.LandListener;
 import lombok.Getter;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -39,6 +38,10 @@ public final class LandClaim extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new BlockBreakListener(), this);
         getServer().getPluginManager().registerEvents(new BlockPlaceListener(), this);
+        getServer().getPluginManager().registerEvents(new HitEntityListener(), this);
+        getServer().getPluginManager().registerEvents(new InteractBlockListener(), this);
+        getServer().getPluginManager().registerEvents(new InteractRedStoneListener(), this);
+        getServer().getPluginManager().registerEvents(new RideEntityListener(), this);
 
         this.getCommand("land").setExecutor(new LandCommand());
 

@@ -2,6 +2,7 @@ package fr.rammex.landClaim.data;
 
 import fr.rammex.landClaim.LandClaim;
 import fr.rammex.landClaim.ranks.Ranks;
+import org.bukkit.Location;
 
 import java.io.File;
 import java.io.IOException;
@@ -475,6 +476,21 @@ public class DataManager {
         } catch (SQLException ex) {
             LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to rename land", ex);
         }
+    }
+
+    public static boolean isPlayerInClaim(String playerUUID, Location location) {
+        String loc = location.toString();
+        try (Connection connection = getSQLConnection()) {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM lands_loc WHERE loc = ?");
+            ps.setString(1, loc);
+            ResultSet rs = ps.executeQuery();
+            boolean isInClaim = rs.next();
+            close(ps, rs);
+            return isInClaim;
+        } catch (SQLException ex) {
+            LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to check if player is in claim", ex);
+        }
+        return false;
     }
 
 }
