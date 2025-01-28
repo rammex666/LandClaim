@@ -1,6 +1,7 @@
 package fr.rammex.landClaim.data;
 
 import fr.rammex.landClaim.LandClaim;
+import fr.rammex.landClaim.ranks.Ranks;
 
 import java.io.File;
 import java.io.IOException;
@@ -104,6 +105,14 @@ public class DataManager {
                     "`land_id` INTEGER NOT NULL" +
                     ");";
 
+            // Table pour les ranks
+            String ranksTable = "CREATE TABLE IF NOT EXISTS ranks (" +
+                    "`id` INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "`rank_name` TEXT NOT NULL," +
+                    "`land_id` TEXT NOT NULL" +
+                    "`permission` INTEGER NOT NULL" +
+                    ");";
+
             s.executeUpdate(landLocTable);
             s.executeUpdate(landDataTable);
             s.executeUpdate(landPermTable);
@@ -111,6 +120,7 @@ public class DataManager {
             s.executeUpdate(playerPermTable);
             s.executeUpdate(playerTrustTable);
             s.executeUpdate(playerInvitationTable);
+            s.executeUpdate(ranksTable);
 
             s.close();
         } catch (SQLException e) {
@@ -128,11 +138,41 @@ public class DataManager {
         }
     }
 
+    public static String getLandOwner(String name) {
+        try (Connection connection = getSQLConnection()) {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM lands_data WHERE name = ?");
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+            String result = rs.getString("owner_uuid");
+            close(ps, rs);
+            return result;
+        } catch (SQLException ex) {
+            LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to get land owner", ex);
+        }
+        return null;
+    }
+
+    public static Boolean isPlayerInLand(String uuid, String land_name) {
+        try (Connection connection = getSQLConnection()) {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM players_data WHERE uuid = ? AND land_name = ?");
+            ps.setString(1, uuid);
+            ps.setString(2, land_name);
+            ResultSet rs = ps.executeQuery();
+            Boolean result = rs.next();
+            close(ps, rs);
+            return result;
+        } catch (SQLException ex) {
+            LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to check if player is in land", ex);
+        }
+        return false;
+    }
+
     public static void addLand(String loc, String owner_uuid, String name) {
         try (Connection connection = getSQLConnection()) {
-            PreparedStatement ps = connection.prepareStatement("INSERT INTO lands_loc (loc, name ,owner_uuid) VALUES (?, ?, ?)");
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO lands_loc (loc, name, owner_uuid) VALUES (?, ?, ?)");
             ps.setString(1, loc);
-            ps.setString(2, owner_uuid);
+            ps.setString(2, name);
+            ps.setString(3, owner_uuid);
             ps.executeUpdate();
             close(ps, null);
         } catch (SQLException ex) {
@@ -301,6 +341,11 @@ public class DataManager {
             ps6.executeUpdate();
             ps6.close();
 
+            PreparedStatement ps7 = connection.prepareStatement("DELETE FROM lands_loc WHERE name = ?");
+            ps7.setString(1, name);
+            ps7.executeUpdate();
+            ps7.close();
+
         } catch (SQLException ex) {
             LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to delete land", ex);
         }
@@ -318,6 +363,118 @@ public class DataManager {
             LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to get land name", ex);
         }
         return null;
+    }
+
+    public static Ranks getPlayerRank(String uuid, String land_name) {
+        try (Connection connection = getSQLConnection()) {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM players_data WHERE uuid = ? AND land_name = ?");
+            ps.setString(1, uuid);
+            ps.setString(2, land_name);
+            ResultSet rs = ps.executeQuery();
+            Ranks result = Ranks.valueOf(rs.getString("land_rank"));
+            close(ps, rs);
+            return result;
+        } catch (SQLException ex) {
+            LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to get player rank", ex);
+        }
+        return null;
+    }
+
+    public static boolean hasRankPermission(int permId, String rankName, String landId){
+        try (Connection connection = getSQLConnection()) {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM ranks WHERE rank_name = ? AND land_id = ? AND permission = ?");
+            ps.setString(1, rankName);
+            ps.setString(2, landId);
+            ps.setInt(3, permId);
+            ResultSet rs = ps.executeQuery();
+            boolean result = rs.next();
+            close(ps, rs);
+            return result;
+        } catch (SQLException ex) {
+            LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to check if rank has permission", ex);
+        }
+        return false;
+    }
+
+    public static String getPlayerUUID(String playerName) {
+        try (Connection connection = getSQLConnection()) {
+            PreparedStatement ps = connection.prepareStatement("SELECT uuid FROM players WHERE name = ?");
+            ps.setString(1, playerName);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                String uuid = rs.getString("uuid");
+                close(ps, rs);
+                return uuid;
+            }
+            close(ps, rs);
+        } catch (SQLException ex) {
+            LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to get player UUID", ex);
+        }
+        return null;
+    }
+
+    public static void addPlayerTrust(String player_uuid, String land_id) {
+        try (Connection connection = getSQLConnection()) {
+            PreparedStatement ps = connection.prepareStatement("INSERT INTO players_trust (player_uuid, land_id) VALUES (?, ?)");
+            ps.setString(1, player_uuid);
+            ps.setString(2, land_id);
+            ps.executeUpdate();
+            close(ps, null);
+        } catch (SQLException ex) {
+            LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to add player trust", ex);
+        }
+    }
+
+    public static boolean isPlayerAlreadyTrusted(String player_uuid, String land_id) {
+        try (Connection connection = getSQLConnection()) {
+            PreparedStatement ps = connection.prepareStatement("SELECT * FROM players_trust WHERE player_uuid = ? AND land_id = ?");
+            ps.setString(1, player_uuid);
+            ps.setString(2, land_id);
+            ResultSet rs = ps.executeQuery();
+            boolean result = rs.next();
+            close(ps, rs);
+            return result;
+        } catch (SQLException ex) {
+            LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to check if player is already trusted", ex);
+        }
+        return false;
+    }
+
+    public static void unTrustPlayer(String player_uuid, String land_id) {
+        try (Connection connection = getSQLConnection()) {
+            PreparedStatement ps = connection.prepareStatement("DELETE FROM players_trust WHERE player_uuid = ? AND land_id = ?");
+            ps.setString(1, player_uuid);
+            ps.setString(2, land_id);
+            ps.executeUpdate();
+            close(ps, null);
+        } catch (SQLException ex) {
+            LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to untrust player", ex);
+        }
+    }
+
+    public static void removePlayer(String player_uuid, String land_name) {
+        try (Connection connection = getSQLConnection()) {
+            PreparedStatement ps = connection.prepareStatement("DELETE FROM players_data WHERE uuid = ? AND land_name = ?");
+            ps.setString(1, player_uuid);
+            ps.setString(2, land_name);
+            ps.executeUpdate();
+            close(ps, null);
+        } catch (SQLException ex) {
+            LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to remove player", ex);
+        }
+    }
+
+    public static void renameLand(String owner_uuid, String oldName, String newName) {
+        try (Connection connection = getSQLConnection()) {
+            PreparedStatement ps = connection.prepareStatement("UPDATE lands_data SET name = ? WHERE owner_uuid = ? AND name = ?");
+            ps.setString(1, newName);
+            ps.setString(2, owner_uuid);
+            ps.setString(3, oldName);
+            ps.executeUpdate();
+            close(ps, null);
+        } catch (SQLException ex) {
+            LandClaim.instance.getLogger().log(Level.SEVERE, "Unable to rename land", ex);
+        }
     }
 
 }

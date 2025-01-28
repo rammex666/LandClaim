@@ -82,5 +82,13 @@
             <version>1.18.34</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.mojang</groupId>
+            <artifactId>authlib</artifactId>
+            <version>1.5.25</version>
+            <systemPath>${project.basedir}/libs/authlib-1.5.21.jar</systemPath>
+            <type>jar</type>
+            <scope>system</scope>
+        </dependency>
     </dependencies>
 </project>
